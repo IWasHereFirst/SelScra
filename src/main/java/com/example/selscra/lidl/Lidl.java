@@ -1,10 +1,8 @@
 package com.example.selscra.lidl;
 
 import com.example.selscra.common.Product;
-import org.openqa.selenium.By;
-import org.openqa.selenium.Dimension;
+import org.openqa.selenium.*;
 import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -30,14 +28,15 @@ public class Lidl {
         driver.manage().window().setSize(new Dimension(1280, 1024));
     }
 
-    public void login() {
+    public Lidl login() {
 
         driver.get(URL_LOGIN_WEBSITE);
         fillLoginForm();
-
+        return this;
     }
 
     private void fillLoginForm() {
+
         // Login email
         clickWait(driver, "input", "name", "EmailOrPhone");
         driver.findElement(By.cssSelector("input[name=EmailOrPhone]")).sendKeys(LOGIN_EMAIL);
@@ -46,33 +45,39 @@ public class Lidl {
         clickWait(driver, "input", "name", "Password");
         driver.findElement(By.cssSelector("input[name=Password]")).sendKeys(LOGIN_PASSWORD);
         driver.findElement(By.cssSelector("button[id=button_submit]")).click();
-        // Accept cookies
-        acceptCookies();
     }
 
-    private void acceptCookies() {
+    public Lidl acceptCookies() {
+
         clickWait(driver, "button", "class", "cookie-alert-extended-button");
         driver.findElement(By.cssSelector("button.cookie-alert-extended-button")).click();
+        return this;
     }
 
-    public void goToWishlist() {
-        driver.get(URL_WISHLIST);
-        loadWait(driver, "ul", "class", "wishlist-items-list");
-        List<WebElement> wishlistItems = driver.findElements(By.cssSelector("li.wishlist-items-list__item"));
+    public void goToWishlist() throws NoSuchElementException, TimeoutException {
+        try {
+            driver.get(URL_WISHLIST);
+            loadWait(driver, "ul", "class", "wishlist-items-list");
+            List<WebElement> wishlistItems = driver.findElements(By.cssSelector("li.wishlist-items-list__item"));
 
-        wishlistItems.forEach(item -> {
-            String title = item.findElement(By.cssSelector(".wishlist-item__product-headline-content")).getText();
-            String price = item.findElement(By.cssSelector(".wishlist-item__price")).getText().replaceAll("[^[0-9].\\n]", "");
-            String subTitle = item.findElement(By.cssSelector(".wishlist-item__product-headline-description")).getText();
-            String imageUrl = item.findElement(By.cssSelector(".wishlist-item__product-image img")).getAttribute("src");
-            String url = item.findElement(By.cssSelector(".wishlist-item__product-headline-content a")).getAttribute("href");
-            System.out.println(title);
-            Product product = new Product(title, price);
-            product.setUrl(url);
-            product.setSubTitle(subTitle);
-            product.setImgURL(imageUrl);
-            System.out.println(product);
-        });
+            wishlistItems.forEach(item -> {
+                String title = item.findElement(By.cssSelector(".wishlist-item__product-headline-content")).getText();
+                String price = item.findElement(By.cssSelector(".wishlist-item__price")).getText().replaceAll("[^[0-9].\\n]", "");
+                String subTitle = item.findElement(By.cssSelector(".wishlist-item__product-headline-description")).getText();
+                String imageUrl = item.findElement(By.cssSelector(".wishlist-item__product-image img")).getAttribute("src");
+                String url = item.findElement(By.cssSelector(".wishlist-item__product-headline-content a")).getAttribute("href");
+                System.out.println(title);
+                Product product = new Product(title, price);
+                product.setUrl(url);
+                product.setSubTitle(subTitle);
+                product.setImgURL(imageUrl);
+                System.out.println(product);
+            });
+        } catch (NoSuchElementException | TimeoutException e) { // Both Exceptions occur when wishlist is down
+            System.out.println(e.getMessage().indexOf("wishlist-items-list") > 0 ? "Website currently unavailable" : e.getMessage());
+        } finally{
+            driver.quit();
+        }
     }
 
     public void getCurrentDiscounts() {
