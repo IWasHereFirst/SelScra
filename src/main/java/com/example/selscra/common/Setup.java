@@ -8,11 +8,13 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.stereotype.Component;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 
+// Singleton class
 public class Setup {
 
     private RemoteWebDriver driver;
@@ -49,7 +51,7 @@ public class Setup {
 
     public static void loadWait(WebDriver wd, String tag, String att, String attVal) {
 
-        new WebDriverWait(wd, Duration.ofSeconds(5)).until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(
+        new WebDriverWait(wd, Duration.ofSeconds(15)).until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(
             tag + "[" + att + "=" + attVal + "]"
         )));
 

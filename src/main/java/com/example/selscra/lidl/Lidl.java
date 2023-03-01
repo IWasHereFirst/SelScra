@@ -1,14 +1,15 @@
 package com.example.selscra.lidl;
 
-import com.example.selscra.common.Product;
+import com.example.selscra.common.Setup;
+import com.example.selscra.dto_lidl.Product;
 import org.openqa.selenium.*;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 import java.util.*;
-
 import static com.example.selscra.common.Setup.clickWait;
 import static com.example.selscra.common.Setup.loadWait;
 
@@ -20,10 +21,13 @@ public class Lidl {
     private static final String LOGIN_EMAIL = "umpiklumpik@gmail.com";
     private static final String LOGIN_PASSWORD = "Arcadosi01";
 
-    private RemoteWebDriver driver;
+    //private RemoteWebDriver driver;
+    private Setup setup;
 
-    public Lidl(RemoteWebDriver driver) {
-        this.driver = driver;
+    private final RemoteWebDriver driver;
+
+    public Lidl(boolean local) {
+        this.driver = Setup.getInstance().getDriver(local);
         // Set proper working dimensions
         driver.manage().window().setSize(new Dimension(1280, 1024));
     }
@@ -54,11 +58,13 @@ public class Lidl {
         return this;
     }
 
-    public void goToWishlist() throws NoSuchElementException, TimeoutException {
+    public List<Product> getAllWishlistProducts() throws NoSuchElementException, TimeoutException {
+
+        List<Product> productList = new ArrayList<>();
         try {
             driver.get(URL_WISHLIST);
-            loadWait(driver, "ul", "class", "wishlist-items-list");
-            List<WebElement> wishlistItems = driver.findElements(By.cssSelector("li.wishlist-items-list__item"));
+            //loadWait(driver, "ul", "class", "wishlist-items-list");
+            List<WebElement> wishlistItems = driver.findElements(By.cssSelector("li.wishlist-items-list__item")); // nazov wapper divu
 
             wishlistItems.forEach(item -> {
                 String title = item.findElement(By.cssSelector(".wishlist-item__product-headline-content")).getText();
@@ -66,56 +72,30 @@ public class Lidl {
                 String subTitle = item.findElement(By.cssSelector(".wishlist-item__product-headline-description")).getText();
                 String imageUrl = item.findElement(By.cssSelector(".wishlist-item__product-image img")).getAttribute("src");
                 String url = item.findElement(By.cssSelector(".wishlist-item__product-headline-content a")).getAttribute("href");
-                System.out.println(title);
                 Product product = new Product(title, price);
                 product.setUrl(url);
                 product.setSubTitle(subTitle);
-                product.setImgURL(imageUrl);
-                System.out.println(product);
+                product.setImgUrl(imageUrl);
+                productList.add(product);
             });
         } catch (NoSuchElementException | TimeoutException e) { // Both Exceptions occur when wishlist is down
             System.out.println(e.getMessage().indexOf("wishlist-items-list") > 0 ? "Website currently unavailable" : e.getMessage());
         } finally{
             driver.quit();
         }
-    }
-
-    public void getCurrentDiscounts() {
-
-        try{
-            driver.get(URL_HOME);
-            acceptCookies();
-            getDiscountNavMenuAndLinks();
-            List<MainMenu> menu = getDiscountNavMenuAndLinks();
-
-            menu.forEach(m -> {
-                m.getSubmenu().forEach(s -> {
-                    System.out.println(m.getMenuTitle() +
-                            "\n\t" + s.getHeadline() +
-                            "\n\t" + s.getAvailableFrom());
-                    loadWait(driver, "div", "class", "footer__wrapper");
-                    getDiscountItems(s, s.getLink());
-                });
-            });
-        } catch (Exception e){
-            System.out.println("Error occured");
-            e.printStackTrace();
-        } finally {
-            driver.quit();
-        }
-
+        return productList;
     }
 
     private List<MainMenu> getDiscountNavMenuAndLinks() {
 
-        loadWait(driver, "div", "class", "n-header__flyout-wrapper");
+
         driver.findElement(By.cssSelector("ol[class*='n-header__main-navigation'] li:nth-of-type(2)")).click();
         WebElement websiteTop = driver.findElement(By.cssSelector("#__layout > div > div.ATheCampaign__Wrapper > main > div > section:nth-child(1)"));
         List<MainMenu> mainMenuList = new ArrayList<>();
 
         for (int i = 1; i < 4; i++) {
 
-            // Click on top menu (3 times) [v predajni, tento tyzden, buduci tyzden]
+            // Click on top menu (3 times) [online shop, tento tyzden, buduci tyzden]
             driver.findElement(By.cssSelector("li[id^='ATheHeroStage__Tab']:nth-of-type(" + i + ")")).click();
             List<WebElement> menuElements = websiteTop.findElements(By.cssSelector("div > div > section:nth-of-type(" + i + ")"));
 
@@ -138,17 +118,83 @@ public class Lidl {
                 mainMenuList.add(menuObject);
             });
         }
+        //loadWait(driver, "div", "class", "n-header__flyout-wrapper");
         return mainMenuList;
     }
 
     private void getDiscountItems(SubMenu subMenu, String url){
         driver.navigate().to(url);
 
-        List<WebElement> discountWrappers = driver.findElements(By.cssSelector(".ATheCampaign__SectionWrapper"));
+        WebElement discountWrappers = driver.findElement(By.cssSelector(".ATheCampaign__Page"));
+        System.out.println("getDiscountItems");
+        List<WebElement> sections = discountWrappers.findElements(By.cssSelector("section[class$='ATheCampaign__SectionWrapper--relative']"));
+        System.out.println("size " + sections.size());
+        sections.forEach(e -> {
+            List<WebElement> products = e.findElements(By.cssSelector("li[class$='ACampaignGrid__item--product']"));
+            System.out.println("products count " + products.size());
+            products.forEach(product -> {
+                System.out.println(product.findElement(By.cssSelector(".grid-box__content")).getText());
+//                System.out.println(product.findElement(By.cssSelector("h2[class^='grid-box__headline'")).getText());
+            });
+        });
 
+
+
+        /*discountWrappers.forEach(a -> {
+            System.out.println("section");
+            List<WebElement> discountItems = a.findElements(By.cssSelector("li[class$='ACampaignGrid__item--product']"));
+            discountItems.forEach(b -> {
+                try {
+                    System.out.println(b.findElement(By.cssSelector("div[class='m-price__wrapper']")).getText());
+                    System.out.println(b.findElement(By.cssSelector("h2[class^='grid-box__headline'")).getText());
+                } catch (NoSuchElementException e){
+                    System.out.println("Not found");
+                }
+            });
+        });
+        */
+
+    }
+
+    public void getCurrentDiscounts() {
+
+        try{
+            driver.get(URL_HOME);
+            List<MainMenu> menu = getDiscountNavMenuAndLinks();
+
+            menu.forEach(m -> {
+                m.getSubmenu().forEach(s -> {
+                    System.out.println(m.getMenuTitle() +
+                            "\n\t" + s.getHeadline() +
+                            "\n\t" + s.getAvailableFrom() +
+                            "\n\t" + s.getLink());
+                    getDiscountItems(s, s.getLink());
+                    //loadWait(driver, "div", "class", "footer__wrapper");
+                });
+            });
+        } catch (Exception e){
+            System.out.println("Error occured");
+            e.printStackTrace();
+        } finally {
+            driver.quit();
+        }
+
+    }
+
+    private String priceLabeler(String s){
+        return s.charAt(s.length() - 1) == '%' ? s : "0";
+    }
+}
+/*
+private void getDiscountItems(SubMenu subMenu, String url){
+        driver.navigate().to(url);
+
+        List<WebElement> discountWrappers = driver.findElements(By.cssSelector(".ATheCampaign__Page"));
         discountWrappers.forEach(c -> {
-            List<WebElement> discountItems = c.findElements(By.cssSelector("li[class$='ACampaignGrid__item']"));
+            System.out.println("section");
+            List<WebElement> discountItems = c.findElements(By.cssSelector("li[class^='ACampaignGrid__item']"));
             discountItems.forEach(a -> {
+                System.out.println("item");
                 String title = "";
                 String subTitle = "";
                 String price = "";
@@ -180,22 +226,18 @@ public class Lidl {
                 } catch (NoSuchElementException e){
                     //System.out.println("Text wasn't found");
                 }
-                System.out.println("Price str: " + price);
+                //System.out.println("Price str: " + price);
 
                 Product product = new Product(title, price);
-                product.setImgURL(imgUrl);
+                product.setImgUrl(imgUrl);
                 product.setUrl(prodUrl);
                 product.setSubTitle(subTitle);
                 subMenu.addProductToSubmenu(product);
-                System.out.println(product);
+                //System.out.println(product);
 
                 //System.out.println("\t\tTitle: " + title + " subTitle: " + subTitle + "\nimgUrl: " + imgUrl + "\nprodUrl: " + prodUrl + " price: " + price);
             });
         });
 
     }
-
-    private String priceLabeler(String s){
-        return s.charAt(s.length() - 1) == '%' ? s : "0";
-    }
-}
+ */

@@ -1,6 +1,6 @@
 package com.example.selscra.lidl;
 
-import com.example.selscra.common.Product;
+import com.example.selscra.dto_lidl.Product;
 
 import java.util.ArrayList;
 import java.util.List;

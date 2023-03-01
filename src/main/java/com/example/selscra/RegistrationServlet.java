@@ -1,8 +1,8 @@
 package com.example.selscra;
 
 import com.example.selscra.common.User;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+//import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -13,9 +13,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.*;
 
-@WebServlet("/RegistrationServlet")
+//@WebServlet("/RegistrationServlet")
 public class RegistrationServlet extends HttpServlet {
-
+/*
     @Override
     public void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
@@ -76,5 +76,5 @@ public class RegistrationServlet extends HttpServlet {
             e.printStackTrace();
         }
     }
-
+*/
 }
