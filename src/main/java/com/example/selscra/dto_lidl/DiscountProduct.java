@@ -95,7 +95,7 @@ public class DiscountProduct {
     }
 
     public DiscountProduct initializeProduct(){
-        if (price.getDiscount() == null) {
+        if (price.getDiscount() == null || price.getDiscount().getPercentageDiscount() == 0) {
             this.fullPrice = price.getPrice();
         } else {
             this.fullPrice = price.getOldPrice();
@@ -113,6 +113,7 @@ public class DiscountProduct {
                 ", fullTitle='" + fullTitle + '\'' +
                 ", image='" + image + '\'' +
                 ", canonicalUrl='" + canonicalUrl + '\'' +
+                ", price=" + price +
                 ", subTitle='" + subTitle + '\'' +
                 ", fullPrice=" + fullPrice +
                 ", discountPercentage=" + discountPercentage +
