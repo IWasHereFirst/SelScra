@@ -1,17 +1,19 @@
 package com.example.selscra.lidl;
 
 import com.example.selscra.common.Setup;
-import com.example.selscra.dto_lidl.Product;
+import com.example.selscra.dto_lidl.DiscountProduct;
+import com.example.selscra.dto_lidl.WishlistProduct;
+import com.google.gson.Gson;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 import org.openqa.selenium.*;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.time.Duration;
+import java.io.IOException;
 import java.util.*;
 import static com.example.selscra.common.Setup.clickWait;
-import static com.example.selscra.common.Setup.loadWait;
 
 public class Lidl {
 
@@ -42,25 +44,25 @@ public class Lidl {
     private void fillLoginForm() {
 
         // Login email
-        clickWait(driver, "input", "name", "EmailOrPhone");
+        clickWait(driver, 5, "input", "name", "EmailOrPhone");
         driver.findElement(By.cssSelector("input[name=EmailOrPhone]")).sendKeys(LOGIN_EMAIL);
         driver.findElement(By.cssSelector("button[id=button_btn_submit_email]")).click();
         // Login password
-        clickWait(driver, "input", "name", "Password");
+        clickWait(driver, 5, "input", "name", "Password");
         driver.findElement(By.cssSelector("input[name=Password]")).sendKeys(LOGIN_PASSWORD);
         driver.findElement(By.cssSelector("button[id=button_submit]")).click();
     }
 
     public Lidl acceptCookies() {
 
-        clickWait(driver, "button", "class", "cookie-alert-extended-button");
+        clickWait(driver, 5, "button", "class", "cookie-alert-extended-button");
         driver.findElement(By.cssSelector("button.cookie-alert-extended-button")).click();
         return this;
     }
 
-    public List<Product> getAllWishlistProducts() throws NoSuchElementException, TimeoutException {
+    public List<WishlistProduct> getAllWishlistProducts() throws NoSuchElementException, TimeoutException {
 
-        List<Product> productList = new ArrayList<>();
+        List<WishlistProduct> wishlistProductList = new ArrayList<>();
         try {
             driver.get(URL_WISHLIST);
             //loadWait(driver, "ul", "class", "wishlist-items-list");
@@ -72,15 +74,46 @@ public class Lidl {
                 String subTitle = item.findElement(By.cssSelector(".wishlist-item__product-headline-description")).getText();
                 String imageUrl = item.findElement(By.cssSelector(".wishlist-item__product-image img")).getAttribute("src");
                 String url = item.findElement(By.cssSelector(".wishlist-item__product-headline-content a")).getAttribute("href");
-                Product product = new Product(title, price);
-                product.setUrl(url);
-                product.setSubTitle(subTitle);
-                product.setImgUrl(imageUrl);
-                productList.add(product);
+                WishlistProduct wishlistProduct = new WishlistProduct(title, price);
+                String s1 = url;
+                s1 = s1.substring(22);
+                int index = s1.indexOf("/");
+                s1 = s1.substring(index+2);
+                wishlistProduct.setId(Long.parseLong(s1));
+                wishlistProduct.setUrl(url);
+                wishlistProduct.setSubTitle(subTitle);
+                wishlistProduct.setImgUrl(imageUrl);
+                wishlistProductList.add(wishlistProduct);
             });
         } catch (NoSuchElementException | TimeoutException e) { // Both Exceptions occur when wishlist is down
             System.out.println(e.getMessage().indexOf("wishlist-items-list") > 0 ? "Website currently unavailable" : e.getMessage());
         } finally{
+            driver.quit();
+        }
+        return wishlistProductList;
+    }
+
+    public List<DiscountProduct> getCurrentDiscounts() {
+        List<DiscountProduct> productList = new ArrayList<>();
+        try{
+            driver.get(URL_HOME);
+            acceptCookies();
+            List<MainMenu> menu = getDiscountNavMenuAndLinks();
+
+            menu.forEach(m -> {
+                m.getSubmenu().forEach(s -> {
+                    System.out.println(m.getMenuTitle() +
+                            "\n\t" + s.getHeadline() +
+                            "\n\t" + s.getAvailableFrom() +
+                            "\n\t" + s.getLink());
+                    List<DiscountProduct> pro = getDiscountItems(s, s.getLink());
+                    productList.addAll(pro);
+                });
+            });
+        } catch (Exception e){
+            System.out.println("Error occured");
+            e.printStackTrace();
+        } finally {
             driver.quit();
         }
         return productList;
@@ -122,122 +155,35 @@ public class Lidl {
         return mainMenuList;
     }
 
-    private void getDiscountItems(SubMenu subMenu, String url){
-        driver.navigate().to(url);
+    public List<DiscountProduct> getDiscountItems(SubMenu subMenu, String url){
+        List<DiscountProduct> productList = new ArrayList<>();
+        try {
+            Document doc = Jsoup.connect(url)
+                    .data("query", "Java")
+                    .userAgent("Mozilla")
+                    .cookie("auth", "token")
+                    .timeout(3000)
+                    .post();
 
-        WebElement discountWrappers = driver.findElement(By.cssSelector(".ATheCampaign__Page"));
-        System.out.println("getDiscountItems");
-        List<WebElement> sections = discountWrappers.findElements(By.cssSelector("section[class$='ATheCampaign__SectionWrapper--relative']"));
-        System.out.println("size " + sections.size());
-        sections.forEach(e -> {
-            List<WebElement> products = e.findElements(By.cssSelector("li[class$='ACampaignGrid__item--product']"));
-            System.out.println("products count " + products.size());
-            products.forEach(product -> {
-                System.out.println(product.findElement(By.cssSelector(".grid-box__content")).getText());
-//                System.out.println(product.findElement(By.cssSelector("h2[class^='grid-box__headline'")).getText());
+            Elements prodList = doc.select(".ATheCampaign__Page section[data-selector='GRID'] li[class$='ACampaignGrid__item--product']");
+            prodList.forEach(element -> {
+                String product = element.select("div[data-grid-label='grid-fragment']").attr("data-grid-data");
+                product = product.substring(1, product.length()-1);
+                Gson gson = new Gson();
+                DiscountProduct discountProduct = gson.fromJson(product, DiscountProduct.class);
+                DiscountProduct prod = discountProduct.initializeProduct();
+                subMenu.addProductToSubmenu(prod);
+                productList.add(prod);
+                System.out.println(discountProduct.toString());
             });
-        });
 
-
-
-        /*discountWrappers.forEach(a -> {
-            System.out.println("section");
-            List<WebElement> discountItems = a.findElements(By.cssSelector("li[class$='ACampaignGrid__item--product']"));
-            discountItems.forEach(b -> {
-                try {
-                    System.out.println(b.findElement(By.cssSelector("div[class='m-price__wrapper']")).getText());
-                    System.out.println(b.findElement(By.cssSelector("h2[class^='grid-box__headline'")).getText());
-                } catch (NoSuchElementException e){
-                    System.out.println("Not found");
-                }
-            });
-        });
-        */
-
-    }
-
-    public void getCurrentDiscounts() {
-
-        try{
-            driver.get(URL_HOME);
-            List<MainMenu> menu = getDiscountNavMenuAndLinks();
-
-            menu.forEach(m -> {
-                m.getSubmenu().forEach(s -> {
-                    System.out.println(m.getMenuTitle() +
-                            "\n\t" + s.getHeadline() +
-                            "\n\t" + s.getAvailableFrom() +
-                            "\n\t" + s.getLink());
-                    getDiscountItems(s, s.getLink());
-                    //loadWait(driver, "div", "class", "footer__wrapper");
-                });
-            });
-        } catch (Exception e){
-            System.out.println("Error occured");
-            e.printStackTrace();
-        } finally {
-            driver.quit();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-
+        return productList;
     }
 
     private String priceLabeler(String s){
         return s.charAt(s.length() - 1) == '%' ? s : "0";
     }
 }
-/*
-private void getDiscountItems(SubMenu subMenu, String url){
-        driver.navigate().to(url);
-
-        List<WebElement> discountWrappers = driver.findElements(By.cssSelector(".ATheCampaign__Page"));
-        discountWrappers.forEach(c -> {
-            System.out.println("section");
-            List<WebElement> discountItems = c.findElements(By.cssSelector("li[class^='ACampaignGrid__item']"));
-            discountItems.forEach(a -> {
-                System.out.println("item");
-                String title = "";
-                String subTitle = "";
-                String price = "";
-                String imgUrl = "";
-                String prodUrl = "";
-                try{
-                    price = a.findElement(By.cssSelector(".m-price__bottom")).getText().replaceAll("[^[0-9].]", ""); // actual price
-                } catch (NoSuchElementException e) {
-                    price += "0.0";
-                }
-                try{
-                    price += "\n" + priceLabeler(a.findElement(By.cssSelector(".m-price__label")).getText()).replaceAll("[^[0-9].]", ""); // label
-                } catch (NoSuchElementException e) {
-                    price += "\n0";
-                }
-
-                try{
-                    price += "\n" + a.findElement(By.cssSelector(".m-price__top")).getText().replaceAll("[^[0-9].]", ""); // old price
-                } catch (NoSuchElementException e) {
-                    price += "\n0.0";
-                }
-
-                try{
-                    title = a.findElement(By.cssSelector("h2[data-qa-label='product-grid-box-title']")).getText();
-                    imgUrl = a.findElement(By.cssSelector("img")).getAttribute("src");
-                    prodUrl = a.findElement(By.cssSelector("a")).getAttribute("href");
-                    subTitle = a.findElement(By.cssSelector(".product-grid-box__text")).getText();
-
-                } catch (NoSuchElementException e){
-                    //System.out.println("Text wasn't found");
-                }
-                //System.out.println("Price str: " + price);
-
-                Product product = new Product(title, price);
-                product.setImgUrl(imgUrl);
-                product.setUrl(prodUrl);
-                product.setSubTitle(subTitle);
-                subMenu.addProductToSubmenu(product);
-                //System.out.println(product);
-
-                //System.out.println("\t\tTitle: " + title + " subTitle: " + subTitle + "\nimgUrl: " + imgUrl + "\nprodUrl: " + prodUrl + " price: " + price);
-            });
-        });
-
-    }
- */

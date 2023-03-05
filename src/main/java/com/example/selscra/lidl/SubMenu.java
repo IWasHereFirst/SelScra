@@ -1,6 +1,6 @@
 package com.example.selscra.lidl;
 
-import com.example.selscra.dto_lidl.Product;
+import com.example.selscra.dto_lidl.DiscountProduct;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,13 +10,13 @@ public class SubMenu {
     private String headline;
     private String availableFrom;
     private String link;
-    private List<Product> productList;
+    private List<DiscountProduct> wishlistProductList;
 
     public SubMenu(String headline, String availableFrom, String link) {
         this.headline = headline;
         this.availableFrom = availableFrom;
         this.link = link;
-        this.productList = new ArrayList<>();
+        this.wishlistProductList = new ArrayList<>();
     }
 
     public String getHeadline() {
@@ -31,12 +31,12 @@ public class SubMenu {
         return link;
     }
 
-    public List<Product> getProductList() {
-        return productList;
+    public List<DiscountProduct> getProductList() {
+        return wishlistProductList;
     }
 
-    public void addProductToSubmenu(Product product) {
-        this.productList.add(product);
+    public void addProductToSubmenu(DiscountProduct wishlistProduct) {
+        this.wishlistProductList.add(wishlistProduct);
     }
 
     @Override

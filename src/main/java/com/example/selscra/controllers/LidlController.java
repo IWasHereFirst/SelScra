@@ -1,7 +1,7 @@
 package com.example.selscra.controllers;
 
 import com.example.selscra.common.User;
-import com.example.selscra.dto_lidl.Product;
+import com.example.selscra.dto_lidl.WishlistProduct;
 import com.example.selscra.services.LidlServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -54,7 +54,7 @@ public class LidlController {
 
     @GetMapping("/products/wishlist/get-all")
     @ResponseBody
-    public List<Product> getAllWishlistProducts(){
+    public List<WishlistProduct> getAllWishlistProducts(){
         return service.getAllWishlistProducts();
     }
 
@@ -68,6 +68,12 @@ public class LidlController {
     @ResponseBody
     public void removeAllWishlistProducts(){
         service.removeAllWishlistProducts();
+    }
+
+    @PostMapping("/products/discounts/add-all")
+    @ResponseBody
+    public String addAllDiscountProducts(){
+        return service.addAllDiscountProducts();
     }
 
 }

@@ -8,11 +8,10 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.springframework.stereotype.Component;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 // Singleton class
 public class Setup {
@@ -49,20 +48,24 @@ public class Setup {
         return this.driver;
     }
 
-    public static void loadWait(WebDriver wd, String tag, String att, String attVal) {
+    public static void loadWait(WebDriver wd, int time, String tag, String att, String attVal) {
 
-        new WebDriverWait(wd, Duration.ofSeconds(15)).until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(
+        new WebDriverWait(wd, Duration.ofSeconds(time)).until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(
             tag + "[" + att + "=" + attVal + "]"
         )));
 
     }
 
-    public static void clickWait(WebDriver wd, String tag, String att, String attVal) {
+    public static void clickWait(WebDriver wd, int time, String tag, String att, String attVal) {
 
-        new WebDriverWait(wd, Duration.ofSeconds(5)).until(ExpectedConditions.elementToBeClickable(By.cssSelector(
+        new WebDriverWait(wd, Duration.ofSeconds(time)).until(ExpectedConditions.elementToBeClickable(By.cssSelector(
                 tag + "[" + att + "=" + attVal + "]"
         )));
 
+    }
+
+    public static void implicitW(WebDriver wd, int time) {
+        wd.manage().timeouts().implicitlyWait(time, TimeUnit.SECONDS);
     }
 
 }
