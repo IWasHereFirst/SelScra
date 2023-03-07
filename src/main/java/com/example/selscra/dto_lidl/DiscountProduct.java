@@ -20,7 +20,7 @@ public class DiscountProduct {
     private String subTitle = "";
     private double fullPrice = 0D;
     private int discountPercentage = 0;
-    private double oldPrice = 0D;
+    private double deletedPrice = 0D;
 
     public long getErpNumber() {
         return erpNumber;
@@ -86,20 +86,20 @@ public class DiscountProduct {
         this.discountPercentage = discountPercentage;
     }
 
-    public double getOldPrice() {
-        return oldPrice;
+    public double getDeletedPrice() {
+        return deletedPrice;
     }
 
-    public void setOldPrice(double oldPrice) {
-        this.oldPrice = oldPrice;
+    public void setDeletedPrice(double deletedPrice) {
+        this.deletedPrice = deletedPrice;
     }
 
     public DiscountProduct initializeProduct(){
         if (price.getDiscount() == null || price.getDiscount().getPercentageDiscount() == 0) {
             this.fullPrice = price.getPrice();
         } else {
-            this.fullPrice = price.getOldPrice();
-            this.oldPrice = price.getOldPrice();
+            this.fullPrice = price.getPrice();
+            this.deletedPrice = price.getDiscount().getDeletedPrice();
             this.discountPercentage = price.getDiscount().getPercentageDiscount();
         }
         this.canonicalUrl = "https://www.lidl.sk" + canonicalUrl;
@@ -117,23 +117,14 @@ public class DiscountProduct {
                 ", subTitle='" + subTitle + '\'' +
                 ", fullPrice=" + fullPrice +
                 ", discountPercentage=" + discountPercentage +
-                ", oldPrice=" + oldPrice +
+                ", deletedPrice=" + deletedPrice +
                 '}';
     }
 }
 
 class Price {
-    private double oldPrice;
     private double price;
     private Discount discount;
-
-    public double getOldPrice() {
-        return oldPrice;
-    }
-
-    public void setOldPrice(double oldPrice) {
-        this.oldPrice = oldPrice;
-    }
 
     public double getPrice() {
         return price;
@@ -154,7 +145,6 @@ class Price {
     @Override
     public String toString() {
         return "Price{" +
-                "oldPrice=" + oldPrice +
                 ", price=" + price +
                 ", discount=" + discount +
                 '}';
@@ -163,6 +153,15 @@ class Price {
 
 class Discount {
     private int percentageDiscount;
+    private double deletedPrice;
+
+    public double getDeletedPrice() {
+        return deletedPrice;
+    }
+
+    public void setDeletedPrice(double deletedPrice) {
+        this.deletedPrice = deletedPrice;
+    }
 
     public int getPercentageDiscount() {
         return percentageDiscount;
@@ -176,6 +175,7 @@ class Discount {
     public String toString() {
         return "Discount{" +
                 "percentageDiscount=" + percentageDiscount +
+                ", deletedPrice=" + deletedPrice +
                 '}';
     }
 }

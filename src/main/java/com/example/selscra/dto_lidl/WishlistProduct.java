@@ -13,7 +13,7 @@ public class WishlistProduct {
     private String url = "";
     private double fullPrice = 0D;
     private int discountPercentage = 0;
-    private double oldPrice = 0D;
+    private double deletedPrice = 0D;
 
     public WishlistProduct(String title, String price) {
         this.title = title;
@@ -51,8 +51,8 @@ public class WishlistProduct {
         return discountPercentage;
     }
 
-    public double getOldPrice() {
-        return oldPrice;
+    public double getDeletedPrice() {
+        return deletedPrice;
     }
 
     public void setId(long id) {
@@ -79,8 +79,8 @@ public class WishlistProduct {
         this.discountPercentage = discountPercentage;
     }
 
-    public void setOldPrice(double oldPrice) {
-        this.oldPrice = oldPrice;
+    public void setDeletedPrice(double deletedPrice) {
+        this.deletedPrice = deletedPrice;
     }
 
     private void priceInitializer(String price){
@@ -89,7 +89,7 @@ public class WishlistProduct {
         } else {
             String[] divided = price.split("\n");
             if (divided.length > 1){
-                this.oldPrice = Double.parseDouble(divided[0]);
+                this.deletedPrice = Double.parseDouble(divided[0]);
                 this.discountPercentage = Integer.parseInt(divided[1]);
                 this.fullPrice = Double.parseDouble(divided[2]);
             } else {
@@ -108,7 +108,7 @@ public class WishlistProduct {
                 "\n\turl='" + url + '\'' +
                 "\nfullPrice=" + fullPrice +
                 ", discountPercentage=" + discountPercentage +
-                ", oldPrice=" + oldPrice +
+                ", oldPrice=" + deletedPrice +
                 '}';
     }
 }

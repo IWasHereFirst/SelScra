@@ -23,11 +23,14 @@ public class Checkers {
             prodList.forEach(element -> {
                 String product = element.select("div[data-grid-label='grid-fragment']").attr("data-grid-data");
                 product = product.substring(1, product.length() - 1);
-                System.out.println(product);
+                // Displays Product's JSON
+                System.out.println("product's JSON " + product);
                 Gson gson = new Gson();
                 DiscountProduct discountProduct = gson.fromJson(product, DiscountProduct.class);
+                //System.out.println("no init " + discountProduct);
                 DiscountProduct prod = discountProduct.initializeProduct();
-                System.out.println(discountProduct.toString());
+                // Displays product's initialized form
+                System.out.println("init " + prod);
             });
         }catch (IOException e) {
             throw new RuntimeException(e);
