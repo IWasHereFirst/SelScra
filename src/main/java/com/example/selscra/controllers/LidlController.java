@@ -1,7 +1,9 @@
 package com.example.selscra.controllers;
 
 import com.example.selscra.common.User;
+import com.example.selscra.dto_lidl.DiscountProduct;
 import com.example.selscra.dto_lidl.WishlistProduct;
+import com.example.selscra.dto_lidl.Category;
 import com.example.selscra.services.LidlServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -70,10 +72,10 @@ public class LidlController {
         service.removeAllWishlistProducts();
     }
 
-    @PostMapping("/products/discounts/add-all")
+    @PostMapping("/new-extract")
     @ResponseBody
-    public String addAllDiscountProducts(){
-        return service.addAllDiscountProducts();
+    public List<Category> newExtract(){
+        return service.newExtract();
     }
 
 }

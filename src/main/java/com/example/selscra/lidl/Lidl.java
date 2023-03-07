@@ -2,6 +2,8 @@ package com.example.selscra.lidl;
 
 import com.example.selscra.common.Setup;
 import com.example.selscra.dto_lidl.DiscountProduct;
+import com.example.selscra.dto_lidl.Category;
+import com.example.selscra.dto_lidl.SubCategory;
 import com.example.selscra.dto_lidl.WishlistProduct;
 import com.google.gson.Gson;
 import org.jsoup.Jsoup;
@@ -93,20 +95,16 @@ public class Lidl {
         return wishlistProductList;
     }
 
-    public List<DiscountProduct> getCurrentDiscounts() {
+    public List<Category> getCurrentDiscounts() {
+        List<Category> menu = new ArrayList<>();
         List<DiscountProduct> productList = new ArrayList<>();
         try{
             driver.get(URL_HOME);
             acceptCookies();
-            List<MainMenu> menu = getDiscountNavMenuAndLinks();
-
+            menu = getDiscountNavMenuAndLinks();
             menu.forEach(m -> {
                 m.getSubmenu().forEach(s -> {
-                    System.out.println(m.getMenuTitle() +
-                            "\n\t" + s.getHeadline() +
-                            "\n\t" + s.getAvailableFrom() +
-                            "\n\t" + s.getLink());
-                    List<DiscountProduct> pro = getDiscountItems(s, s.getLink());
+                    List<DiscountProduct> pro = getDiscountItems(m, s, s.getUrl());
                     productList.addAll(pro);
                 });
             });
@@ -116,46 +114,53 @@ public class Lidl {
         } finally {
             driver.quit();
         }
-        return productList;
+        return menu;
     }
 
-    private List<MainMenu> getDiscountNavMenuAndLinks() {
-
+    public List<Category> getDiscountNavMenuAndLinks() {
 
         driver.findElement(By.cssSelector("ol[class*='n-header__main-navigation'] li:nth-of-type(2)")).click();
         WebElement websiteTop = driver.findElement(By.cssSelector("#__layout > div > div.ATheCampaign__Wrapper > main > div > section:nth-child(1)"));
-        List<MainMenu> mainMenuList = new ArrayList<>();
-
-        for (int i = 1; i < 4; i++) {
+        List<Category> categoryList = new ArrayList<>();
+        for (int i = 1; i <= 3; i++) {
 
             // Click on top menu (3 times) [online shop, tento tyzden, buduci tyzden]
+            Category menuObject = new Category();
+            long categoryId = Long.parseLong(driver.findElement(By.cssSelector("li[id^='ATheHeroStage__Tab']:nth-of-type(" + i + ")")).getAttribute("id").replaceAll("[^0-9.]", ""));
+            menuObject.setId(categoryId);
             driver.findElement(By.cssSelector("li[id^='ATheHeroStage__Tab']:nth-of-type(" + i + ")")).click();
             List<WebElement> menuElements = websiteTop.findElements(By.cssSelector("div > div > section:nth-of-type(" + i + ")"));
 
             menuElements.forEach(mainMenu -> {
 
                 String menuTitle = mainMenu.findElement(By.cssSelector("span[class='ATheHeroStage__AccordionTabHeading']")).getText();
-                MainMenu menuObject = new MainMenu(menuTitle);
+                menuObject.setName(menuTitle);
                 List<WebElement> subMenu = mainMenu.findElements(By.cssSelector("div.ATheHeroStage__Offer"));
 
                 subMenu.forEach(subMenuItems -> {
 
-                    String headline = subMenuItems.findElement(By.cssSelector(".ATheHeroStage__Headline")).getText();
+                    String name = subMenuItems.findElement(By.cssSelector(".ATheHeroStage__Headline")).getText();
                     String availableFrom = subMenuItems.findElement(By.cssSelector(".ATheHeroStage__OfferHeadlineText")).getText();
-                    String link = subMenuItems.findElement(By.cssSelector("a")).getAttribute("href");
+                    String url = subMenuItems.findElement(By.cssSelector("a")).getAttribute("href");
+                    long subCategoryId = (categoryId + Long.parseLong(subMenuItems.findElement(By.cssSelector("a")).getAttribute("id").replaceAll("[^0-9.]", "")));
 
-                    SubMenu submenuObject = new SubMenu(headline, availableFrom, link);
+                    //ATheHeroStage__OfferAnchor111
+                    SubCategory submenuObject = new SubCategory();
+                    submenuObject.setId(subCategoryId);
+                    submenuObject.setName(name);
+                    submenuObject.setAvailableFrom(availableFrom);
+                    submenuObject.setUrl(url);
+                    submenuObject.setCatId(categoryId);
                     menuObject.addSubmenu(submenuObject);
 
                 });
-                mainMenuList.add(menuObject);
+                categoryList.add(menuObject);
             });
         }
-        //loadWait(driver, "div", "class", "n-header__flyout-wrapper");
-        return mainMenuList;
+        return categoryList;
     }
 
-    public List<DiscountProduct> getDiscountItems(SubMenu subMenu, String url){
+    public List<DiscountProduct> getDiscountItems(Category category, SubCategory subCategory, String url){
         List<DiscountProduct> productList = new ArrayList<>();
         try {
             Document doc = Jsoup.connect(url)
@@ -172,9 +177,10 @@ public class Lidl {
                 Gson gson = new Gson();
                 DiscountProduct discountProduct = gson.fromJson(product, DiscountProduct.class);
                 DiscountProduct prod = discountProduct.initializeProduct();
-                subMenu.addProductToSubmenu(prod);
+                prod.setCatId(category.getId());
+                prod.setSubCatId(subCategory.getId());
+                subCategory.addProductToSubmenu(prod);
                 productList.add(prod);
-                System.out.println(discountProduct.toString());
             });
 
         } catch (IOException e) {

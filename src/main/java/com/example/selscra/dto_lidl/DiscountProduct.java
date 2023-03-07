@@ -21,6 +21,8 @@ public class DiscountProduct {
     private double fullPrice = 0D;
     private int discountPercentage = 0;
     private double deletedPrice = 0D;
+    private long catId;
+    private long subCatId;
 
     public long getErpNumber() {
         return erpNumber;
@@ -94,6 +96,22 @@ public class DiscountProduct {
         this.deletedPrice = deletedPrice;
     }
 
+    public long getCatId() {
+        return catId;
+    }
+
+    public void setCatId(long catId) {
+        this.catId = catId;
+    }
+
+    public long getSubCatId() {
+        return subCatId;
+    }
+
+    public void setSubCatId(long subCatId) {
+        this.subCatId = subCatId;
+    }
+
     public DiscountProduct initializeProduct(){
         if (price.getDiscount() == null || price.getDiscount().getPercentageDiscount() == 0) {
             this.fullPrice = price.getPrice();
@@ -118,6 +136,8 @@ public class DiscountProduct {
                 ", fullPrice=" + fullPrice +
                 ", discountPercentage=" + discountPercentage +
                 ", deletedPrice=" + deletedPrice +
+                ", catId=" + catId +
+                ", subCatId=" + subCatId +
                 '}';
     }
 }
