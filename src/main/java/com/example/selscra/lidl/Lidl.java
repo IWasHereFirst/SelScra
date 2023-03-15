@@ -97,19 +97,17 @@ public class Lidl {
 
     public List<Category> getCurrentDiscounts() {
         List<Category> menu = new ArrayList<>();
-        List<DiscountProduct> productList = new ArrayList<>();
         try{
             driver.get(URL_HOME);
             acceptCookies();
             menu = getDiscountNavMenuAndLinks();
             menu.forEach(m -> {
                 m.getSubmenu().forEach(s -> {
-                    List<DiscountProduct> pro = getDiscountItems(m, s, s.getUrl());
-                    productList.addAll(pro);
+                    getDiscountItems(m, s, s.getUrl());
                 });
             });
         } catch (Exception e){
-            System.out.println("Error occured");
+            System.out.println("Error occurred");
             e.printStackTrace();
         } finally {
             driver.quit();
@@ -160,8 +158,7 @@ public class Lidl {
         return categoryList;
     }
 
-    public List<DiscountProduct> getDiscountItems(Category category, SubCategory subCategory, String url){
-        List<DiscountProduct> productList = new ArrayList<>();
+    public void getDiscountItems(Category category, SubCategory subCategory, String url){
         try {
             Document doc = Jsoup.connect(url)
                     .data("query", "Java")
@@ -180,16 +177,58 @@ public class Lidl {
                 prod.setCatId(category.getId());
                 prod.setSubCatId(subCategory.getId());
                 subCategory.addProductToSubmenu(prod);
-                productList.add(prod);
             });
 
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return productList;
     }
 
-    private String priceLabeler(String s){
+    public static DiscountProduct addProductFromUrl(String pageUrl){
+        DiscountProduct product = new DiscountProduct();
+        try{
+        Document doc = Jsoup.connect(pageUrl)
+                .data("query", "Java")
+                .userAgent("Mozilla")
+                .cookie("auth", "token")
+                .timeout(3000)
+                .post();
+
+            long id = 0;
+            String title = "";
+            String subTitle = "";
+            String imgUrl = "";
+            String url = "";
+            String price = "";
+            long catId;
+            long subCatId;
+
+            String actualPrice = doc.select(".m-price__bottom").text().replaceAll("[^[0-9].]", "");
+            price = actualPrice.equals("") ? "0.0" : (actualPrice); // actual price
+            String label = doc.select(".m-price__label").text().replaceAll("[^[0-9].]", "");
+            price += "\n" + (label.equals("") ? "0" : (priceLabeler(label))); // label
+            String oldPrice = doc.select(".m-price__top").text().replaceAll("[^[0-9].]", "");
+            price += "\n" + (oldPrice.equals("") ? "0.0" : oldPrice); // old price
+
+            title = doc.select("h2[data-qa-label='product-grid-box-title']").text();
+            imgUrl = doc.select("img").attr("src");
+            url = doc.select("a").attr("href");
+            subTitle = doc.select(".product-grid-box__text").text();
+
+            System.out.println("Price str: " + price);
+
+            product.setImage(imgUrl);
+            product.setCanonicalUrl(pageUrl);
+            product.setSubTitle(subTitle);
+            product.priceInitializer(price);
+            System.out.println(product);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return product;
+    }
+
+    public static String priceLabeler(String s){
         return s.charAt(s.length() - 1) == '%' ? s : "0";
     }
 }

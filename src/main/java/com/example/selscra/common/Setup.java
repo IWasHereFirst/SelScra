@@ -11,7 +11,6 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 
 // Singleton class
 public class Setup {
@@ -31,13 +30,12 @@ public class Setup {
 
     public RemoteWebDriver getDriver(boolean local) {
 
+        ChromeOptions chromeOptions = new ChromeOptions();
         if (local) {
-            ChromeOptions chromeOptions = new ChromeOptions();
             chromeOptions.addArguments("--remote-allow-origins=*");
             WebDriverManager.chromedriver().setup();
             this.driver = new ChromeDriver(chromeOptions);
         } else {
-            ChromeOptions chromeOptions = new ChromeOptions();
             chromeOptions.addArguments("--no-sandbox");
             chromeOptions.addArguments("--disable-dev-shm-usage");
             try{
@@ -67,7 +65,7 @@ public class Setup {
     }
 
     public static void implicitW(WebDriver wd, int time) {
-        wd.manage().timeouts().implicitlyWait(time, TimeUnit.SECONDS);
+        wd.manage().timeouts().implicitlyWait(Duration.ofSeconds(time));
     }
 
 }

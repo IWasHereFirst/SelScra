@@ -124,6 +124,21 @@ public class DiscountProduct {
         return this;
     }
 
+    public void priceInitializer(String price){
+        if (price.equals("0.0\n-0%\n0.0")){
+            this.fullPrice = 0D;
+        } else {
+            String[] divided = price.split("\n");
+            if (divided.length > 1){
+                this.deletedPrice = Double.parseDouble(divided[2]);
+                this.discountPercentage = Integer.parseInt(divided[1]);
+                this.fullPrice = Double.parseDouble(divided[0]);
+            } else {
+                this.fullPrice = Double.parseDouble(divided[0]);
+            }
+        }
+    }
+
     @Override
     public String toString() {
         return "DiscountProduct{" +
