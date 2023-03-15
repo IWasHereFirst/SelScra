@@ -1,6 +1,5 @@
 package com.example.selscra;
 
-import com.example.selscra.common.Checkers;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;

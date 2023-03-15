@@ -10,6 +10,7 @@ import java.io.IOException;
 
 public class Checkers {
 
+    // Usage like: Checkers.grid("https://www.lidl.sk/c/sportova-vybava/a10008515");
     public static void grid(String url){
         try{
             Document doc = Jsoup.connect(url)

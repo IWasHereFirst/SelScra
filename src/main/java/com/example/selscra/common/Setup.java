@@ -32,8 +32,10 @@ public class Setup {
     public RemoteWebDriver getDriver(boolean local) {
 
         if (local) {
+            ChromeOptions chromeOptions = new ChromeOptions();
+            chromeOptions.addArguments("--remote-allow-origins=*");
             WebDriverManager.chromedriver().setup();
-            this.driver = new ChromeDriver();
+            this.driver = new ChromeDriver(chromeOptions);
         } else {
             ChromeOptions chromeOptions = new ChromeOptions();
             chromeOptions.addArguments("--no-sandbox");
