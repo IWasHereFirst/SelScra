@@ -206,7 +206,7 @@ public class Lidl {
             String actualPrice = doc.select(".m-price__bottom").text().replaceAll("[^[0-9].]", "");
             price = actualPrice.equals("") ? "0.0" : (actualPrice); // actual price
             String label = doc.select(".m-price__label").text().replaceAll("[^[0-9].]", "");
-            price += "\n" + (label.equals("") ? "0" : (priceLabeler(label))); // label
+            price += "\n" + (label.equals("") ? "0" : (label)); // label
             String oldPrice = doc.select(".m-price__top").text().replaceAll("[^[0-9].]", "");
             price += "\n" + (oldPrice.equals("") ? "0.0" : oldPrice); // old price
 
@@ -214,8 +214,6 @@ public class Lidl {
             imgUrl = doc.select("img").attr("src");
             url = doc.select("a").attr("href");
             subTitle = doc.select(".product-grid-box__text").text();
-
-            System.out.println("Price str: " + price);
 
             product.setImage(imgUrl);
             product.setCanonicalUrl(pageUrl);
