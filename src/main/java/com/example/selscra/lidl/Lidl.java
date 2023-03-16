@@ -209,12 +209,14 @@ public class Lidl {
             price += "\n" + (label.equals("") ? "0" : (label)); // label
             String oldPrice = doc.select(".m-price__top").text().replaceAll("[^[0-9].]", "");
             price += "\n" + (oldPrice.equals("") ? "0.0" : oldPrice); // old price
+            id = Long.parseLong(doc.select(".buybox__erp-number").text());
+            title = doc.select(".keyfacts__title").text();
+            imgUrl = doc.select(".gallery-image__img").attr("src");
+            subTitle = doc.select("div[class$='info__content--description']").html();
+            String subCategory = "https://www.lidl.sk" + doc.select("div[class$='m-breadcrumbs--full'] li:last-of-type").attr("href");
 
-            title = doc.select("h2[data-qa-label='product-grid-box-title']").text();
-            imgUrl = doc.select("img").attr("src");
-            url = doc.select("a").attr("href");
-            subTitle = doc.select(".product-grid-box__text").text();
-
+            product.setErpNumber(id);
+            product.setFullTitle(title);
             product.setImage(imgUrl);
             product.setCanonicalUrl(pageUrl);
             product.setSubTitle(subTitle);

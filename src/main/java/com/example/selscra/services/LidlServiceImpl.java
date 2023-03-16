@@ -41,6 +41,7 @@ public class LidlServiceImpl implements LidlService {
         return (nr > 1 ? (nr + " products ") : (nr + " product ")) + "were added";
     }
 
+
     @Override
     public void removeAllWishlistProducts() {
         lidlWishlistProductsRepository.deleteAll();
@@ -62,5 +63,11 @@ public class LidlServiceImpl implements LidlService {
         lidlSubCategoryRepository.saveAll(subCategory);
         lidlDiscountProductsRepository.saveAll(product);
         return category;
+    }
+
+    @Override
+    public void addProductFromUrl(String url) {
+        DiscountProduct product =  Lidl.addProductFromUrl(url);
+        lidlDiscountProductsRepository.save(product);
     }
 }

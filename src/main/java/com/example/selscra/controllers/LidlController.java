@@ -78,4 +78,10 @@ public class LidlController {
         return service.newExtract();
     }
 
+    @PostMapping("/products/add-product-from-url/")
+    @ResponseBody
+    public void addProductFromUrl(@RequestBody String url) {
+        service.addProductFromUrl(url);
+    }
+
 }

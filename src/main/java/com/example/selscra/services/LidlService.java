@@ -12,4 +12,6 @@ public interface LidlService {
     void removeAllWishlistProducts();
 
     List<Category> newExtract();
+
+    void addProductFromUrl(String url);
 }
