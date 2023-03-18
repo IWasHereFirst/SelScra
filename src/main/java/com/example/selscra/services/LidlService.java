@@ -1,17 +1,13 @@
 package com.example.selscra.services;
 
-import com.example.selscra.dto_lidl.WishlistProduct;
 import com.example.selscra.dto_lidl.Category;
+import com.example.selscra.dto_lidl.Product;
 
 import java.util.List;
 
 public interface LidlService {
 
-    List<WishlistProduct> getAllWishlistProducts();
-    String addAllWishlistProducts();
-    void removeAllWishlistProducts();
-
     List<Category> newExtract();
 
-    void addProductFromUrl(String url);
+    Product addProductFromUrl(String url);
 }

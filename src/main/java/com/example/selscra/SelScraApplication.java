@@ -1,10 +1,14 @@
 package com.example.selscra;
 
 import com.example.selscra.common.Checkers;
+import com.example.selscra.dto_lidl.Category;
+import com.example.selscra.dto_lidl.Product;
 import com.example.selscra.lidl.Lidl;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
+
+import java.util.List;
 
 @ServletComponentScan
 @SpringBootApplication
@@ -17,8 +21,11 @@ public class SelScraApplication {
         //lidl.login().acceptCookies().getAllWishlistProducts();
 
         //lidl.getCurrentDiscounts();
-        Checkers.grid("https://www.lidl.sk/c/sportova-vybava/a10008515");
+        //Checkers.grid("https://www.lidl.sk/c/sportova-vybava/a10008515");
 
+        //Lidl lidl = new Lidl(true);
+        //lidl.getCurrentDiscounts();
+        //productList.forEach(System.out::println);
 
     }
 }

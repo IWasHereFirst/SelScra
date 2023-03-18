@@ -1,9 +1,6 @@
 package com.example.selscra.dto_lidl;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,8 +10,10 @@ public class Category {
     @Id
     private long id;
     private String name;
+    private String availableFrom;
+    private String url;
     @Transient
-    private List<SubCategory> submenu = new ArrayList<>();
+    private List<Product> productList = new ArrayList<>();
 
     public long getId() {
         return id;
@@ -24,20 +23,36 @@ public class Category {
         this.id = id;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getName() {
         return name;
     }
 
-    public List<SubCategory> getSubmenu() {
-        return submenu;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public void addSubmenu(SubCategory submenu) {
-        this.submenu.add(submenu);
+    public String getAvailableFrom() {
+        return availableFrom;
+    }
+
+    public void setAvailableFrom(String availableFrom) {
+        this.availableFrom = availableFrom;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public List<Product> getProductList() {
+        return productList;
+    }
+
+    public void addProductToSubmenu(Product wishlistProduct) {
+        this.productList.add(wishlistProduct);
     }
 
     @Override
@@ -45,7 +60,9 @@ public class Category {
         return "Category{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", submenu=" + submenu +
+                ", availableFrom='" + availableFrom + '\'' +
+                ", url='" + url + '\'' +
+                ", ProductList=" + productList +
                 '}';
     }
 }

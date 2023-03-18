@@ -1,16 +1,13 @@
 package com.example.selscra.lidl;
 
 import com.example.selscra.common.Setup;
-import com.example.selscra.dto_lidl.DiscountProduct;
 import com.example.selscra.dto_lidl.Category;
-import com.example.selscra.dto_lidl.SubCategory;
-import com.example.selscra.dto_lidl.WishlistProduct;
+import com.example.selscra.dto_lidl.Product;
 import com.google.gson.Gson;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.openqa.selenium.*;
-import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.IOException;
@@ -19,11 +16,7 @@ import static com.example.selscra.common.Setup.clickWait;
 
 public class Lidl {
 
-    private static final String URL_LOGIN_WEBSITE = "https://www.lidl.sk/user-api/login?step=login&redirect=https%3A%2F%2Fwww.lidl.sk%2F";
-    private static final String URL_WISHLIST = "https://www.lidl.sk/wishlist/";
     private static final String URL_HOME = "https://www.lidl.sk";
-    private static final String LOGIN_EMAIL = "umpiklumpik@gmail.com";
-    private static final String LOGIN_PASSWORD = "Arcadosi01";
 
     //private RemoteWebDriver driver;
     private Setup setup;
@@ -36,25 +29,6 @@ public class Lidl {
         driver.manage().window().setSize(new Dimension(1280, 1024));
     }
 
-    public Lidl login() {
-
-        driver.get(URL_LOGIN_WEBSITE);
-        fillLoginForm();
-        return this;
-    }
-
-    private void fillLoginForm() {
-
-        // Login email
-        clickWait(driver, 5, "input", "name", "EmailOrPhone");
-        driver.findElement(By.cssSelector("input[name=EmailOrPhone]")).sendKeys(LOGIN_EMAIL);
-        driver.findElement(By.cssSelector("button[id=button_btn_submit_email]")).click();
-        // Login password
-        clickWait(driver, 5, "input", "name", "Password");
-        driver.findElement(By.cssSelector("input[name=Password]")).sendKeys(LOGIN_PASSWORD);
-        driver.findElement(By.cssSelector("button[id=button_submit]")).click();
-    }
-
     public Lidl acceptCookies() {
 
         clickWait(driver, 5, "button", "class", "cookie-alert-extended-button");
@@ -62,103 +36,58 @@ public class Lidl {
         return this;
     }
 
-    public List<WishlistProduct> getAllWishlistProducts() throws NoSuchElementException, TimeoutException {
-
-        List<WishlistProduct> wishlistProductList = new ArrayList<>();
-        try {
-            driver.get(URL_WISHLIST);
-            //loadWait(driver, "ul", "class", "wishlist-items-list");
-            List<WebElement> wishlistItems = driver.findElements(By.cssSelector("li.wishlist-items-list__item")); // nazov wapper divu
-
-            wishlistItems.forEach(item -> {
-                String title = item.findElement(By.cssSelector(".wishlist-item__product-headline-content")).getText();
-                String price = item.findElement(By.cssSelector(".wishlist-item__price")).getText().replaceAll("[^[0-9].\\n]", "");
-                String subTitle = item.findElement(By.cssSelector(".wishlist-item__product-headline-description")).getText();
-                String imageUrl = item.findElement(By.cssSelector(".wishlist-item__product-image img")).getAttribute("src");
-                String url = item.findElement(By.cssSelector(".wishlist-item__product-headline-content a")).getAttribute("href");
-                WishlistProduct wishlistProduct = new WishlistProduct(title, price);
-                String s1 = url;
-                s1 = s1.substring(22);
-                int index = s1.indexOf("/");
-                s1 = s1.substring(index+2);
-                wishlistProduct.setId(Long.parseLong(s1));
-                wishlistProduct.setUrl(url);
-                wishlistProduct.setSubTitle(subTitle);
-                wishlistProduct.setImgUrl(imageUrl);
-                wishlistProductList.add(wishlistProduct);
-            });
-        } catch (NoSuchElementException | TimeoutException e) { // Both Exceptions occur when wishlist is down
-            System.out.println(e.getMessage().indexOf("wishlist-items-list") > 0 ? "Website currently unavailable" : e.getMessage());
-        } finally{
-            driver.quit();
-        }
-        return wishlistProductList;
-    }
-
     public List<Category> getCurrentDiscounts() {
-        List<Category> menu = new ArrayList<>();
-        try{
-            driver.get(URL_HOME);
-            acceptCookies();
-            menu = getDiscountNavMenuAndLinks();
-            menu.forEach(m -> {
-                m.getSubmenu().forEach(s -> {
-                    getDiscountItems(m, s, s.getUrl());
-                });
-            });
-        } catch (Exception e){
-            System.out.println("Error occurred");
-            e.printStackTrace();
-        } finally {
-            driver.quit();
-        }
+        List<Category> menu = getDiscountNavMenuAndLinks();
+        menu.forEach(m -> {
+            getDiscountItems(m, m.getUrl());
+        });
+
         return menu;
     }
 
     public List<Category> getDiscountNavMenuAndLinks() {
 
-        driver.findElement(By.cssSelector("ol[class*='n-header__main-navigation'] li:nth-of-type(2)")).click();
-        WebElement websiteTop = driver.findElement(By.cssSelector("#__layout > div > div.ATheCampaign__Wrapper > main > div > section:nth-child(1)"));
         List<Category> categoryList = new ArrayList<>();
-        for (int i = 1; i <= 3; i++) {
+        try{
+            driver.get(URL_HOME);
+            acceptCookies();
 
-            // Click on top menu (3 times) [online shop, tento tyzden, buduci tyzden]
-            Category menuObject = new Category();
-            long categoryId = Long.parseLong(driver.findElement(By.cssSelector("li[id^='ATheHeroStage__Tab']:nth-of-type(" + i + ")")).getAttribute("id").replaceAll("[^0-9.]", ""));
-            menuObject.setId(categoryId);
-            driver.findElement(By.cssSelector("li[id^='ATheHeroStage__Tab']:nth-of-type(" + i + ")")).click();
-            List<WebElement> menuElements = websiteTop.findElements(By.cssSelector("div > div > section:nth-of-type(" + i + ")"));
+            driver.findElement(By.cssSelector("ol[class*='n-header__main-navigation'] li:nth-of-type(2)")).click();
+            WebElement websiteTop = driver.findElement(By.cssSelector("#__layout > div > div.ATheCampaign__Wrapper > main > div > section:nth-child(1)"));
+            for (int i = 1; i <= 3; i++) {
 
-            menuElements.forEach(mainMenu -> {
+                // Click on top menu (3 times) [online shop, tento tyzden, buduci tyzden]
+                driver.findElement(By.cssSelector("li[id^='ATheHeroStage__Tab']:nth-of-type(" + i + ")")).click();
+                List<WebElement> menuElements = websiteTop.findElements(By.cssSelector("div > div > section:nth-of-type(" + i + ")"));
 
-                String menuTitle = mainMenu.findElement(By.cssSelector("span[class='ATheHeroStage__AccordionTabHeading']")).getText();
-                menuObject.setName(menuTitle);
-                List<WebElement> subMenu = mainMenu.findElements(By.cssSelector("div.ATheHeroStage__Offer"));
+                menuElements.forEach(mainMenu -> {
 
-                subMenu.forEach(subMenuItems -> {
+                    List<WebElement> subMenu = mainMenu.findElements(By.cssSelector("div.ATheHeroStage__Offer"));
 
-                    String name = subMenuItems.findElement(By.cssSelector(".ATheHeroStage__Headline")).getText();
-                    String availableFrom = subMenuItems.findElement(By.cssSelector(".ATheHeroStage__OfferHeadlineText")).getText();
-                    String url = subMenuItems.findElement(By.cssSelector("a")).getAttribute("href");
-                    long subCategoryId = (categoryId + Long.parseLong(subMenuItems.findElement(By.cssSelector("a")).getAttribute("id").replaceAll("[^0-9.]", "")));
+                    subMenu.forEach(subMenuItems -> {
 
-                    //ATheHeroStage__OfferAnchor111
-                    SubCategory submenuObject = new SubCategory();
-                    submenuObject.setId(subCategoryId);
-                    submenuObject.setName(name);
-                    submenuObject.setAvailableFrom(availableFrom);
-                    submenuObject.setUrl(url);
-                    submenuObject.setCatId(categoryId);
-                    menuObject.addSubmenu(submenuObject);
+                        // subMenu = Category
+                        String name = subMenuItems.findElement(By.cssSelector(".ATheHeroStage__Headline")).getText();
+                        String availableFrom = subMenuItems.findElement(By.cssSelector(".ATheHeroStage__OfferHeadlineText")).getText();
+                        String url = subMenuItems.findElement(By.cssSelector("a")).getAttribute("href");
+                        long categoryId = Long.parseLong(url.substring(ordinalIndexOf(url, "/", 4)+2, url.indexOf("?")));
 
+                        Category category = new Category();
+                        category.setId(categoryId);
+                        category.setName(name);
+                        category.setAvailableFrom(availableFrom);
+                        category.setUrl(url);
+                        categoryList.add(category);
+                    });
                 });
-                categoryList.add(menuObject);
-            });
+            }
+        } finally {
+            driver.quit();
         }
         return categoryList;
     }
 
-    public void getDiscountItems(Category category, SubCategory subCategory, String url){
+    public void getDiscountItems(Category category, String url){
         try {
             Document doc = Jsoup.connect(url)
                     .data("query", "Java")
@@ -169,14 +98,13 @@ public class Lidl {
 
             Elements prodList = doc.select(".ATheCampaign__Page section[data-selector='GRID'] li[class$='ACampaignGrid__item--product']");
             prodList.forEach(element -> {
-                String product = element.select("div[data-grid-label='grid-fragment']").attr("data-grid-data");
-                product = product.substring(1, product.length()-1);
+                String productJson = element.select("div[data-grid-label='grid-fragment']").attr("data-grid-data");
+                productJson = productJson.substring(1, productJson.length()-1);
                 Gson gson = new Gson();
-                DiscountProduct discountProduct = gson.fromJson(product, DiscountProduct.class);
-                DiscountProduct prod = discountProduct.initializeProduct();
-                prod.setCatId(category.getId());
-                prod.setSubCatId(subCategory.getId());
-                subCategory.addProductToSubmenu(prod);
+                Product product = gson.fromJson(productJson, Product.class);
+                product.initializeProduct();
+                product.setCatId(category.getId());
+                category.addProductToSubmenu(product);
             });
 
         } catch (IOException e) {
@@ -184,8 +112,10 @@ public class Lidl {
         }
     }
 
-    public static DiscountProduct addProductFromUrl(String pageUrl){
-        DiscountProduct product = new DiscountProduct();
+    public static Category addProductFromUrl(String pageUrl){
+        Product product = new Product();
+        Category category = new Category();
+        category.addProductToSubmenu(product);
         try{
         Document doc = Jsoup.connect(pageUrl)
                 .data("query", "Java")
@@ -198,10 +128,10 @@ public class Lidl {
             String title = "";
             String subTitle = "";
             String imgUrl = "";
-            String url = "";
             String price = "";
             long catId;
-            long subCatId;
+            String catUrl = "";
+            String catName = "";
 
             String actualPrice = doc.select(".m-price__bottom").text().replaceAll("[^[0-9].]", "");
             price = actualPrice.equals("") ? "0.0" : (actualPrice); // actual price
@@ -209,11 +139,18 @@ public class Lidl {
             price += "\n" + (label.equals("") ? "0" : (label)); // label
             String oldPrice = doc.select(".m-price__top").text().replaceAll("[^[0-9].]", "");
             price += "\n" + (oldPrice.equals("") ? "0.0" : oldPrice); // old price
+
             id = Long.parseLong(doc.select(".buybox__erp-number").text());
             title = doc.select(".keyfacts__title").text();
             imgUrl = doc.select(".gallery-image__img").attr("src");
             subTitle = doc.select("div[class$='info__content--description']").html();
-            String subCategory = "https://www.lidl.sk" + doc.select("div[class$='m-breadcrumbs--full'] li:last-of-type").attr("href");
+            catUrl = "https://www.lidl.sk" + doc.select("ol[class$='m-breadcrumbs--full'] li:last-of-type a").attr("href");
+            catName = doc.select("ol[class$='m-breadcrumbs--full'] li:last-of-type a").text();
+            catId = Long.parseLong(catUrl.substring(ordinalIndexOf(catUrl, "/", 4) + 2));
+
+            category.setId(catId);
+            category.setName(catName);
+            category.setUrl(catUrl);
 
             product.setErpNumber(id);
             product.setFullTitle(title);
@@ -221,14 +158,22 @@ public class Lidl {
             product.setCanonicalUrl(pageUrl);
             product.setSubTitle(subTitle);
             product.priceInitializer(price);
-            System.out.println(product);
+            product.setCatId(catId);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return product;
+        return category;
     }
 
     public static String priceLabeler(String s){
         return s.charAt(s.length() - 1) == '%' ? s : "0";
+    }
+
+    public static int ordinalIndexOf(String str, String subStr, int n) {
+        int pos = -1;
+        do {
+            pos = str.indexOf(subStr, pos + 1);
+        } while (n-- > 0 && pos != -1);
+        return pos;
     }
 }

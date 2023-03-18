@@ -4,7 +4,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "product")
-public class DiscountProduct {
+public class Product {
 
     @Id
     @Column(name = "id")
@@ -22,7 +22,6 @@ public class DiscountProduct {
     private int discountPercentage = 0;
     private double deletedPrice = 0D;
     private long catId;
-    private long subCatId;
 
     public long getErpNumber() {
         return erpNumber;
@@ -104,15 +103,7 @@ public class DiscountProduct {
         this.catId = catId;
     }
 
-    public long getSubCatId() {
-        return subCatId;
-    }
-
-    public void setSubCatId(long subCatId) {
-        this.subCatId = subCatId;
-    }
-
-    public DiscountProduct initializeProduct(){
+    public Product initializeProduct(){
         if (price.getDiscount() == null || price.getDiscount().getPercentageDiscount() == 0) {
             this.fullPrice = price.getPrice();
         } else {
@@ -141,7 +132,7 @@ public class DiscountProduct {
 
     @Override
     public String toString() {
-        return "DiscountProduct{" +
+        return "Product{" +
                 "erpNumber=" + erpNumber +
                 ", fullTitle='" + fullTitle + '\'' +
                 ", image='" + image + '\'' +
@@ -152,7 +143,6 @@ public class DiscountProduct {
                 ", discountPercentage=" + discountPercentage +
                 ", deletedPrice=" + deletedPrice +
                 ", catId=" + catId +
-                ", subCatId=" + subCatId +
                 '}';
     }
 }

@@ -1,6 +1,6 @@
 package com.example.selscra.common;
 
-import com.example.selscra.dto_lidl.DiscountProduct;
+import com.example.selscra.dto_lidl.Product;
 import com.google.gson.Gson;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -27,9 +27,9 @@ public class Checkers {
                 // Displays Product's JSON
                 System.out.println("product's JSON " + product);
                 Gson gson = new Gson();
-                DiscountProduct discountProduct = gson.fromJson(product, DiscountProduct.class);
+                Product discountProduct = gson.fromJson(product, Product.class);
                 //System.out.println("no init " + discountProduct);
-                DiscountProduct prod = discountProduct.initializeProduct();
+                Product prod = discountProduct.initializeProduct();
                 // Displays product's initialized form
                 System.out.println("init " + prod);
             });

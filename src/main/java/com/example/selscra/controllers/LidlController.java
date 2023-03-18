@@ -1,9 +1,8 @@
 package com.example.selscra.controllers;
 
 import com.example.selscra.common.User;
-import com.example.selscra.dto_lidl.DiscountProduct;
-import com.example.selscra.dto_lidl.WishlistProduct;
 import com.example.selscra.dto_lidl.Category;
+import com.example.selscra.dto_lidl.Product;
 import com.example.selscra.services.LidlServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -54,25 +53,7 @@ public class LidlController {
         return "index";
     }
 
-    @GetMapping("/products/wishlist/get-all")
-    @ResponseBody
-    public List<WishlistProduct> getAllWishlistProducts(){
-        return service.getAllWishlistProducts();
-    }
-
-    @PostMapping("/products/wishlist/add-all")
-    @ResponseBody
-    public String addAllWishlistProducts(){
-        return service.addAllWishlistProducts();
-    }
-
-    @DeleteMapping("/products/wishlist/delete-all")
-    @ResponseBody
-    public void removeAllWishlistProducts(){
-        service.removeAllWishlistProducts();
-    }
-
-    @PostMapping("/new-extract")
+    @PostMapping("/get-extract")
     @ResponseBody
     public List<Category> newExtract(){
         return service.newExtract();
@@ -80,8 +61,8 @@ public class LidlController {
 
     @PostMapping("/products/add-product-from-url/")
     @ResponseBody
-    public void addProductFromUrl(@RequestBody String url) {
-        service.addProductFromUrl(url);
+    public Product addProductFromUrl(@RequestBody String url) {
+        return service.addProductFromUrl(url);
     }
 
 }
