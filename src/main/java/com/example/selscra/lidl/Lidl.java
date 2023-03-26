@@ -30,7 +30,6 @@ public class Lidl {
     }
 
     public Lidl acceptCookies() {
-
         clickWait(driver, 5, "button", "class", "cookie-alert-extended-button");
         driver.findElement(By.cssSelector("button.cookie-alert-extended-button")).click();
         return this;
@@ -39,7 +38,7 @@ public class Lidl {
     public List<Category> getCurrentDiscounts() {
         List<Category> menu = getDiscountNavMenuAndLinks();
         menu.forEach(m -> {
-            getDiscountItems(m, m.getUrl());
+            getAllDiscountProducts(m, m.getUrl());
         });
 
         return menu;
@@ -67,10 +66,11 @@ public class Lidl {
                     subMenu.forEach(subMenuItems -> {
 
                         // subMenu = Category
+                        String url = subMenuItems.findElement(By.cssSelector("a")).getAttribute("href");
+                        if(url.indexOf("online-magazin") > 0) return;
+                        long categoryId = Long.parseLong(url.substring(ordinalIndexOf(url, "/", 4)+2, url.indexOf("?")));
                         String name = subMenuItems.findElement(By.cssSelector(".ATheHeroStage__Headline")).getText();
                         String availableFrom = subMenuItems.findElement(By.cssSelector(".ATheHeroStage__OfferHeadlineText")).getText();
-                        String url = subMenuItems.findElement(By.cssSelector("a")).getAttribute("href");
-                        long categoryId = Long.parseLong(url.substring(ordinalIndexOf(url, "/", 4)+2, url.indexOf("?")));
 
                         Category category = new Category();
                         category.setId(categoryId);
@@ -87,7 +87,7 @@ public class Lidl {
         return categoryList;
     }
 
-    public void getDiscountItems(Category category, String url){
+    public void getAllDiscountProducts(Category category, String url){
         try {
             Document doc = Jsoup.connect(url)
                     .data("query", "Java")
@@ -136,7 +136,7 @@ public class Lidl {
             String actualPrice = doc.select(".m-price__bottom").text().replaceAll("[^[0-9].]", "");
             price = actualPrice.equals("") ? "0.0" : (actualPrice); // actual price
             String label = doc.select(".m-price__label").text().replaceAll("[^[0-9].]", "");
-            price += "\n" + (label.equals("") ? "0" : (label)); // label
+            price += "\n" + priceLabeler(label); // label, price labeler cut's out other than discounts (grams etc.)
             String oldPrice = doc.select(".m-price__top").text().replaceAll("[^[0-9].]", "");
             price += "\n" + (oldPrice.equals("") ? "0.0" : oldPrice); // old price
 
