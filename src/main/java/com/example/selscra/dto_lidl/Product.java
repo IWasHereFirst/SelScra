@@ -1,6 +1,10 @@
 package com.example.selscra.dto_lidl;
 
+import com.example.selscra.lidl.Lidl;
+
 import javax.persistence.*;
+
+import static com.example.selscra.lidl.Lidl.priceLabeler;
 
 @Entity
 @Table(name = "product")
@@ -122,7 +126,8 @@ public class Product {
             String[] divided = price.split("\n");
             if (divided.length > 1){
                 this.deletedPrice = Double.parseDouble(divided[2]);
-                this.discountPercentage = Integer.parseInt(divided[1]);
+                // priceLabeler used, because otherwise it would add 150g as 150% discount
+                this.discountPercentage = Integer.parseInt(priceLabeler(divided[1]));
                 this.fullPrice = Double.parseDouble(divided[0]);
             } else {
                 this.fullPrice = Double.parseDouble(divided[0]);
