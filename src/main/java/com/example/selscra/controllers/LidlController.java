@@ -65,4 +65,10 @@ public class LidlController {
         return service.addProductFromUrl(url);
     }
 
+    @PostMapping("/products/refresh-prices")
+    @ResponseBody
+    public void refreshPrices(){
+        service.refreshPrices();
+    }
+
 }

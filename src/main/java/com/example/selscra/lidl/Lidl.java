@@ -25,7 +25,7 @@ public class Lidl {
 
     public Lidl(boolean local) {
         this.driver = Setup.getInstance().getDriver(local);
-        // Set proper working dimensions
+        // Set proper browser window working dimensions
         driver.manage().window().setSize(new Dimension(1280, 1024));
     }
 
@@ -116,57 +116,63 @@ public class Lidl {
         Product product = new Product();
         Category category = new Category();
         category.addProductToSubmenu(product);
+        urlProduct(category, product, pageUrl);
+        return category;
+    }
+
+    public static void urlProduct(Category cat, Product prod, String url) {
         try{
-        Document doc = Jsoup.connect(pageUrl)
-                .data("query", "Java")
-                .userAgent("Mozilla")
-                .cookie("auth", "token")
-                .timeout(3000)
-                .post();
+            Document doc = Jsoup.connect(url)
+                    .data("query", "Java")
+                    .userAgent("Mozilla")
+                    .cookie("auth", "token")
+                    .timeout(3000)
+                    .post();
+
+            long catId;
+            String catUrl = "";
+            String catName = "";
+
+            catUrl = "https://www.lidl.sk" + doc.select("ol[class$='m-breadcrumbs--full'] li:last-of-type a").attr("href");
+            catName = doc.select("ol[class$='m-breadcrumbs--full'] li:last-of-type a").text();
+            catId = Long.parseLong(catUrl.substring(ordinalIndexOf(catUrl, "/", 4) + 2));
+
+            cat.setId(catId);
+            cat.setName(catName);
+            cat.setUrl(catUrl);
 
             long id = 0;
             String title = "";
             String subTitle = "";
             String imgUrl = "";
             String price = "";
-            long catId;
-            String catUrl = "";
-            String catName = "";
 
             String actualPrice = doc.select(".m-price__bottom").text().replaceAll("[^[0-9].]", "");
             price = actualPrice.equals("") ? "0.0" : (actualPrice); // actual price
-            String label = doc.select(".m-price__label").text().replaceAll("[^[0-9].]", "");
-            price += "\n" + priceLabeler(label); // label, price labeler cut's out other than discounts (grams etc.)
+            String label = doc.select(".m-price__label").text();
+            price += "\n" + priceLabeler(label).replaceAll("[^[0-9].]", ""); // label, price labeler cut's out other than discounts (grams etc.)
             String oldPrice = doc.select(".m-price__top").text().replaceAll("[^[0-9].]", "");
             price += "\n" + (oldPrice.equals("") ? "0.0" : oldPrice); // old price
-
             id = Long.parseLong(doc.select(".buybox__erp-number").text());
             title = doc.select(".keyfacts__title").text();
             imgUrl = doc.select(".gallery-image__img").attr("src");
             subTitle = doc.select("div[class$='info__content--description']").html();
-            catUrl = "https://www.lidl.sk" + doc.select("ol[class$='m-breadcrumbs--full'] li:last-of-type a").attr("href");
-            catName = doc.select("ol[class$='m-breadcrumbs--full'] li:last-of-type a").text();
-            catId = Long.parseLong(catUrl.substring(ordinalIndexOf(catUrl, "/", 4) + 2));
 
-            category.setId(catId);
-            category.setName(catName);
-            category.setUrl(catUrl);
+            prod.setErpNumber(id);
+            prod.setFullTitle(title);
+            prod.setImage(imgUrl);
+            prod.setCanonicalUrl(url);
+            prod.setSubTitle(subTitle);
+            prod.priceInitializer(price);
+            prod.setCatId(catId);
 
-            product.setErpNumber(id);
-            product.setFullTitle(title);
-            product.setImage(imgUrl);
-            product.setCanonicalUrl(pageUrl);
-            product.setSubTitle(subTitle);
-            product.priceInitializer(price);
-            product.setCatId(catId);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return category;
     }
 
     public static String priceLabeler(String s){
-        return s.charAt(s.length() - 1) == '%' ? s : "0";
+            return s.contains("%") ? s : "0";
     }
 
     public static int ordinalIndexOf(String str, String subStr, int n) {

@@ -10,4 +10,6 @@ public interface LidlService {
     List<Category> newExtract();
 
     Product addProductFromUrl(String url);
+
+    void refreshPrices();
 }
