@@ -8,10 +8,12 @@ import com.example.selscra.repositories.LidlCategoryRepository;
 import com.example.selscra.repositories.LidlDBProductRepository;
 import com.example.selscra.repositories.LidlProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class LidlServiceImpl implements LidlService {
@@ -47,22 +49,23 @@ public class LidlServiceImpl implements LidlService {
 
     @Override
     public void refreshPrices() {
-        List<DBProduct> oldPrices = lidlDBProductRepository.findAll();
-        int i = 0;
-        for(DBProduct oldProd : oldPrices){
-
-            Product currentProd = new Product();
-            try{
-                Lidl.urlProduct(new Category(), currentProd, oldProd.getUrl());
-            } catch (Exception e){
-                return;
-            }
-            System.out.println("new prod: " + currentProd);
-            if (oldProd.getFullPrice() != currentProd.getFullPrice()){
-                lidlProductRepository.save(currentProd);
-            }
-            if(i == 20) break;
-            i++;
+        int dbSize =  lidlDBProductRepository.findAll().size();
+        for (int i = 0; i <= dbSize/100; i++){
+            int finalI = i;
+            CompletableFuture.runAsync(()->{
+                List<DBProduct> oldPrices = lidlDBProductRepository.findAll(PageRequest.of(finalI, 100)).getContent();
+                oldPrices.forEach(oldProd -> {
+                    Product currentProd = new Product();
+                    try{
+                        Lidl.urlProduct(new Category(), currentProd, oldProd.getUrl());
+                    } catch (Exception e){
+                        return;
+                    }
+                    if (oldProd.getFullPrice() != currentProd.getFullPrice()){
+                        lidlProductRepository.save(currentProd);
+                    }
+                });
+            });
         }
     }
 }
