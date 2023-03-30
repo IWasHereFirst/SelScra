@@ -12,6 +12,8 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
 import static com.example.selscra.common.Setup.clickWait;
 
 public class Lidl {
@@ -35,18 +37,18 @@ public class Lidl {
         return this;
     }
 
-    public List<Category> getCurrentDiscounts() {
-        List<Category> menu = getDiscountNavMenuAndLinks();
-        menu.forEach(m -> {
+    public ConcurrentHashMap<Category, Integer> getCurrentDiscounts() {
+        ConcurrentHashMap<Category, Integer> menu = getDiscountNavMenuAndLinks();
+        menu.forEach((m, n) -> {
             getAllDiscountProducts(m, m.getUrl());
         });
 
         return menu;
     }
 
-    public List<Category> getDiscountNavMenuAndLinks() {
+    public ConcurrentHashMap<Category, Integer> getDiscountNavMenuAndLinks() {
 
-        List<Category> categoryList = new ArrayList<>();
+        ConcurrentHashMap<Category, Integer> categoryList = new ConcurrentHashMap<>();
         try{
             driver.get(URL_HOME);
             acceptCookies();
@@ -77,7 +79,7 @@ public class Lidl {
                         category.setName(name);
                         category.setAvailableFrom(availableFrom);
                         category.setUrl(url);
-                        categoryList.add(category);
+                        categoryList.put(category, 0);
                     });
                 });
             }
@@ -111,6 +113,7 @@ public class Lidl {
             throw new RuntimeException(e);
         }
     }
+
 
     public static Category addProductFromUrl(String pageUrl){
         Product product = new Product();
@@ -182,4 +185,61 @@ public class Lidl {
         } while (n-- > 0 && pos != -1);
         return pos;
     }
+
+    /*
+    public List<Category> getCurrentDiscounts() {
+        List<Category> menu = getDiscountNavMenuAndLinks();
+        menu.forEach(m -> {
+            getAllDiscountProducts(m, m.getUrl());
+        });
+
+        return menu;
+    }
+
+     */
+
+    /*
+    public List<Category> getDiscountNavMenuAndLinks() {
+
+        List<Category> categoryList = new ArrayList<>();
+        try{
+            driver.get(URL_HOME);
+            acceptCookies();
+
+            driver.findElement(By.cssSelector("ol[class*='n-header__main-navigation'] li:nth-of-type(2)")).click();
+            WebElement websiteTop = driver.findElement(By.cssSelector("#__layout > div > div.ATheCampaign__Wrapper > main > div > section:nth-child(1)"));
+            for (int i = 1; i <= 3; i++) {
+
+                // Click on top menu (3 times) [online shop, tento tyzden, buduci tyzden]
+                driver.findElement(By.cssSelector("li[id^='ATheHeroStage__Tab']:nth-of-type(" + i + ")")).click();
+                List<WebElement> menuElements = websiteTop.findElements(By.cssSelector("div > div > section:nth-of-type(" + i + ")"));
+
+                menuElements.forEach(mainMenu -> {
+
+                    List<WebElement> subMenu = mainMenu.findElements(By.cssSelector("div.ATheHeroStage__Offer"));
+
+                    subMenu.forEach(subMenuItems -> {
+
+                        // subMenu = Category
+                        String url = subMenuItems.findElement(By.cssSelector("a")).getAttribute("href");
+                        if(url.indexOf("online-magazin") > 0) return;
+                        long categoryId = Long.parseLong(url.substring(ordinalIndexOf(url, "/", 4)+2, url.indexOf("?")));
+                        String name = subMenuItems.findElement(By.cssSelector(".ATheHeroStage__Headline")).getText();
+                        String availableFrom = subMenuItems.findElement(By.cssSelector(".ATheHeroStage__OfferHeadlineText")).getText();
+
+                        Category category = new Category();
+                        category.setId(categoryId);
+                        category.setName(name);
+                        category.setAvailableFrom(availableFrom);
+                        category.setUrl(url);
+                        categoryList.add(category);
+                    });
+                });
+            }
+        } finally {
+            driver.quit();
+        }
+        return categoryList;
+    }
+     */
 }

@@ -3,6 +3,7 @@ package com.example.selscra.dto_lidl;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Entity
 public class Category {
@@ -13,7 +14,7 @@ public class Category {
     private String availableFrom;
     private String url;
     @Transient
-    private List<Product> productList = new ArrayList<>();
+    private ConcurrentHashMap<Product, Integer> productList = new ConcurrentHashMap<>();
 
     public long getId() {
         return id;
@@ -47,12 +48,12 @@ public class Category {
         this.url = url;
     }
 
-    public List<Product> getProductList() {
+    public ConcurrentHashMap<Product, Integer> getProductList() {
         return productList;
     }
 
     public void addProductToSubmenu(Product wishlistProduct) {
-        this.productList.add(wishlistProduct);
+        this.productList.put(wishlistProduct, 0);
     }
 
     @Override

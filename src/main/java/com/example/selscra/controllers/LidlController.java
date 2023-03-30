@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Controller
 @RequestMapping("/lidl")
@@ -53,9 +54,9 @@ public class LidlController {
         return "index";
     }
 
-    @PostMapping("/get-extract")
+    @PostMapping("/products/get-extract")
     @ResponseBody
-    public List<Category> newExtract(){
+    public ConcurrentHashMap<Category, Integer> newExtract(){
         return service.newExtract();
     }
 
@@ -69,6 +70,12 @@ public class LidlController {
     @ResponseBody
     public void refreshPrices(){
         service.refreshPrices();
+    }
+
+    @DeleteMapping("/products/delete-all")
+    @ResponseBody
+    public String deleteAll(){
+        return service.deleteAll();
     }
 
 }
